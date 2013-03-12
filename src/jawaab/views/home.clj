@@ -1,13 +1,14 @@
 (ns jawaab.views.home
   (:use
-    [noir.core :only [defpartial defpage render]]
+    [noir.core :only [defpartial defpage url-for]]
+    [noir.response :only [redirect]]
     jawaab.views.common)
   (:require
     [clojure.tools.logging :as log]
     [hiccup.form :as form]
+    [hiccup.element :as elem]
     [jawaab.models.threads :as threads]
-    [jawaab.models.users :as users]
-    ))
+    [jawaab.models.users :as users]))
 
 (defpartial login
   [error]
@@ -29,11 +30,11 @@
          (form/submit-button {:class "btn btn-primary"} "Submit")]])])
 
 (defpartial home-posts
-  [{:keys [id title submission-time]}]
+  [{:keys [id title stime]}]
   [:tr
    [:td id]
-   [:td title]
-   [:td submission-time]])
+   [:td (elem/link-to (url-for "/thread/:id" {:id id}) title)]
+   [:td stime]])
 
 (defpage "/" []
   (layout
@@ -44,9 +45,9 @@
     [:div#posts
       [:table
         [:tbody
-          (map home-posts (threads/get-latest-posts))]]]))
+          (map home-posts (threads/get-latest-threads))]]]))
 
 (defpage [:post "/login"] {:keys [email password]}
   (if (users/authenticate email password)
-    (render "/home")
+    (redirect "/home")
     (layout (login "Invalid email/password combination"))))
