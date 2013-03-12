@@ -2,6 +2,7 @@
   (:use
     jawaab.models.common)
   (:require
+    [clojure.java.jdbc :as jdbc]
     [noir.util.crypt :as crypt]
     [clojureql.core :as cql]))
 
@@ -14,14 +15,20 @@
 (defn create!
   "Creates a new user record"
   [user]
+  (->> (assoc user :password (crypt/encrypt (:password user)))
+    (jdbc/insert-record :users)
+    (jdbc/with-connection db-spec)
+    :generated_key))
+
+(defn lookup
+  "Lookup an existing user by email address"
+  [email]
   (-> (cql/table db-spec :users)
-    (cql/conj! (assoc user :password (crypt/encrypt (:password user))))))
+    (cql/select (cql/where (= :email email)))
+    deref))
 
 (defn authenticate
   [email password]
-  (when-let [result
-              (-> (cql/table db-spec :users)
-                (cql/project [:password])
-                (cql/select (cql/where (= :email email)))
-                deref first)]
-    (crypt/compare password (:password result))))
+  (when-let [[result] (lookup email)]
+    (when (crypt/compare password (:password result))
+      (:id result))))

@@ -1,15 +1,26 @@
 (ns jawaab.views.common
   (:use
-    [noir.core :only [defpartial]]
+    [noir.core :only [defpartial url-for]]
     [hiccup.page :only [include-css html5 include-js]])
   (:require
-    [hiccup.element :as elem]))
+    [hiccup.element :as elem]
+    [hiccup.form :as form]))
 
 (def ^:private header
   "Jawaab Header HTML"
   [:header.row
-   [:div.span9.title
-    (elem/link-to "/" [:h2 "Jawaab"])]])
+   [:div.navbar.navbar-static-top
+     [:div.navbar-inner
+       (elem/link-to {:class "brand"} "/" "Jawaab")
+       [:div.container
+         (elem/unordered-list {:class "nav"}
+           [(elem/link-to (url-for "/home") "Home")
+            (elem/link-to (url-for "/new_post_form") "New")
+            ; TODO Sessions and sign out support
+            (elem/link-to (url-for "/") "Sign out")])
+           (form/form-to {:class "navbar-search pull-left"} [:get "/search"]
+             (form/text-field {:class "search-query" :placeholder "Search"}
+               "search"))]]]])
 
 (defpartial layout [& content]
   (html5

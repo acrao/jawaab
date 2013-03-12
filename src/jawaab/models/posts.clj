@@ -2,13 +2,16 @@
   (:use
     jawaab.models.common)
   (:require
+    [clojure.java.jdbc :as jdbc]
     [clojureql.core :as cql]))
 
-(defn create!
-  "Insert a new post record into the database"
+(defn create
+  "Insert a new post record into the database. Return the auto generate post id"
   [post]
-  (-> (cql/table db-spec :posts)
-    (cql/conj! (assoc post :stime (local-time)))))
+  (->> (assoc post :stime (local-time))
+    (jdbc/insert-record :posts)
+    (jdbc/with-connection db-spec)
+    :generated_key))
 
 (defn update!
   "Update an existing post record specified by :id"
@@ -31,3 +34,11 @@
      :thread_id thread-id
      :type "q"
      :timestamp i}))
+
+(defn get-latest-posts
+  [num]
+  "Gets latest num posts sorted by submission time"
+  (-> (cql/table db-spec :posts)
+    (cql/sort [:stime#desc])
+    (cql/take num)
+    deref))
