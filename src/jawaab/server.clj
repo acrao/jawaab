@@ -1,10 +1,15 @@
 (ns jawaab.server
-  (:require
-    [noir.server :as server]))
+  (:use
+    [noir.cookies :only [wrap-noir-cookies]]
+    [noir.server :only [gen-handler load-views-ns]]))
 
-(server/load-views-ns 'jawaab.views)
+(load-views-ns 'jawaab.views)
 
-(def handler
-  (server/gen-handler
+(def base-handler
+  (gen-handler
     {:mode :dev
      :ns 'jawaab}))
+
+(def app
+  (-> base-handler
+      wrap-noir-cookies))

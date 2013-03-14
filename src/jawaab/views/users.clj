@@ -7,9 +7,16 @@
    [jawaab.models.users :as users]))
 
 (defpage [:post "/login"] {:keys [email password]}
-  (if (users/authenticate email password)
-    (redirect "/home")
-    (layout (login "Invalid email/password combination"))))
+  (let [uid (users/authenticate email password)]
+    (if uid
+      (do
+        (users/save-uid! uid)
+        (redirect "/home"))
+      (layout (login "Invalid email/password combination")))))
+
+(defpage "/logout" []
+  (users/clear-cookies)
+  (redirect (url-for "/")))
 
 (defpage "/signup" []
   (layout (signup)))

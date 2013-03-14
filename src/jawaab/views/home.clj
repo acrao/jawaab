@@ -3,6 +3,7 @@
     [noir.core :only [defpartial defpage url-for]]
     jawaab.views.common)
   (:require
+    [jawaab.models.users :as users]
     [hiccup.element :as elem]
     [jawaab.models.posts :as posts]))
 

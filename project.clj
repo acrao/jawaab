@@ -10,7 +10,7 @@
 
   :plugins [[lein-ring "0.8.3"]]
   :ring
-    {:handler jawaab.server/handler
+    {:handler jawaab.server/app
      :port 24014}
   :main jawaab.server)
 

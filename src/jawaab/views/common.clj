@@ -9,8 +9,8 @@
     [jawaab.models.posts :as posts]
     [jawaab.models.users :as users]))
 
-(def ^:private header
-  "Jawaab Header HTML"
+(defpartial header
+  []
   [:header.row
    [:div.navbar.navbar-static-top
      [:div.navbar-inner
@@ -20,12 +20,15 @@
            [(elem/link-to (url-for "/home") "Home")
             (elem/link-to (url-for "/post/new") "New")
             ; TODO Sessions and sign out support
-            (elem/link-to (url-for "/") "Sign out")])
+            (elem/link-to (url-for "/logout") "Sign out")])
            (form/form-to {:class "navbar-search pull-left"} [:get "/search"]
              (form/text-field {:class "search-query" :placeholder "Search"}
-               "search"))]]]])
+               "search"))
+           (when-let [uid (users/get-uid)]
+             [:p "Signed in as : " (:name (users/lookup-id (Integer. uid)))])]]]])
 
-(defpartial layout [& content]
+(defpartial layout
+  [& content]
   (html5
     [:head
       [:title "Jawaab"]
@@ -34,7 +37,7 @@
     (include-js "/js/posts.js")
     [:body
      [:div.container
-      [:div.page-header header]
+      [:div.page-header (header)]
       [:section.main.row
         [:div.span12.row content]]]]))
 
