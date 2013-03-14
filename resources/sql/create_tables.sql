@@ -17,7 +17,7 @@ create table posts (
   body text not null,
   stime datetime not null,
   user_id integer,
-  parent integer,
+  parent_id integer,
   -- constraints
   foreign key(user_id)references user(id),
   primary key(id)

@@ -2,6 +2,7 @@
   (:use
     [noir.core :only [defpartial defpage url-for]]
     [noir.response :only [redirect]]
+    [hiccup.page :only [include-js]]
     jawaab.views.common
     )
   (:require
@@ -9,9 +10,13 @@
     [hiccup.element :as elem]
     [jawaab.models.posts :as posts]))
 
-(defpartial post
-  [post]
+(defpartial format-post
+  [post title?]
   [:div.row-fluid
+    (when title?
+      [:div
+        [:h3 (:title post)]
+        [:hr]])
     [:div.container.span2
       [:div.container.span2
         [:div.row
@@ -20,43 +25,59 @@
       [:div
        [:p 5]]]
     [:div
-      (:text post)]]
+      (:body post)]]
+  [:div.row-fluid
+   [:p [:bold "Tags : "]
+    ; TODO -> Get tags for post
+    "Tag123"]]
   [:div.row-fluid
     [:div.span3.offset6
-      [:small (format "Submitted by %s" (:user_id post))]]])
+      [:small (format "Submitted by %s" (:user_id post))]]]
+  [:hr])
 
 (defpartial new-post-form
-  []
-  (form/form-to {:class "form-horizontal"} [:post "/create_post"]
-    [:div.control-group
-      (form/label {:class "control-label"} "title" "Title")
-      [:div.controls
-        (form/text-area {:rows 4} "title")]]
-    [:div.control-group
-      (form/label {:class "control-label"} "body" "Question")
-      [:div.controls
-        (form/text-area {:rows 4} "body")]]
-    [:div.control-group
-      (form/label {:class "control-label"} "tags" "Tags")
-      [:div.controls
-        (form/text-field "tags")]]
-    (form/hidden-field "type" "q")
-    [:div.control-group
-      [:div.controls
-        (form/submit-button {:class "btn btn-primary"} "Post")]]))
+  [parent-id hidden?]
+  (let [base-props {:class "form-horizontal new-post-form"}
+        hidden-props {:style "display: none;"}]
+    (form/form-to (if hidden? (merge base-props hidden-props) base-props)
+      [:post "/post/create"]
+      (when (not hidden?)
+        [:div.control-group
+          (form/label {:class "control-label"} "title" "Title")
+          [:div.controls
+            (form/text-area {:rows 4} "title")]])
+      [:div.control-group
+        (form/label {:class "control-label"} "body" (if hidden? "Answer" "Question"))
+        [:div.controls
+          (form/text-area {:rows 4} "body")]]
+      [:div.control-group
+        (form/label {:class "control-label"} "tags" "Tags")
+        [:div.controls
+          (form/text-field "tags")]]
+      (form/hidden-field "type" (if hidden? "a" "q"))
+      (form/hidden-field "parent_id" parent-id)
+      [:div.control-group
+        [:div.controls
+          (form/submit-button {:class "btn btn-primary"} "Post")]])))
 
 (defpartial post-layout
-  [posts]
+  [[parent-post replies]]
   [:div.container-fluid
-    (map post posts)])
+    (format-post parent-post true)
+    (map #(format-post % false) replies)
+    [:div.row-fluid
+      [:button.reply-post.btn.btn-primary "Reply"]]
+    [:div.row-fluid
+      (new-post-form (:id parent-post) true)]])
 
-(defpage "/new_post_form" []
-  (layout (new-post-form)))
+(defpage "/post/new" []
+  (layout (new-post-form nil false)))
 
-(defpage [:post "/create_post"] post
-  (let [post_id (posts/create (dissoc post :tags))]
-    (redirect (url-for "/post/:id" {:id post_id}))))
+(defpage [:post "/post/create"] post
+  (let [post_id (posts/create (dissoc post :tags))
+        post (posts/get-post post_id)]
+    (redirect (url-for "/post/:id/view" {:id (or (:parent_id post) post_id)}))))
 
-(defpage "/post/:id" {post-id :id}
+(defpage "/post/:id/view" {post-id :id}
   (layout
-    (post-layout (posts/posts-for-thread post-id))))
+    (post-layout (posts/get-posts-for-parent post-id))))
