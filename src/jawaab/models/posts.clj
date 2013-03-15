@@ -57,6 +57,15 @@
     (cql/take num)
     deref))
 
+(defn num-answers
+  "Returns the number of answers to a particular post-id"
+  [parent-id]
+  (-> (cql/table db-spec :posts)
+    (cql/select (cql/where (= :parent_id parent-id)))
+    (cql/aggregate [:count/id :as :answers])
+    (cql/pick :answers)
+    deref))
+
 (defn lookup-vote
   [post-id uid direction]
   (-> (cql/table db-spec :post_votes)

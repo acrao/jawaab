@@ -13,33 +13,36 @@
 
 (defpartial format-post
   [post title?]
-  [:div.row-fluid
-    (when title?
-      [:div
+  (when title?
+    [:div.row
+      [:div.span12
         [:h3 (:title post)]
-        [:hr]])
-    [:div.container.span2
-      [:div.container.span2
+        [:hr]]])
+  [:div.row
+    [:div.span1
+      [:div.container
         [:div.row
           [:button.vote-button.btn.btn-success
-           {:data-post-id (:id post) :data-dir 1} "U"]
+          {:data-post-id (:id post) :data-dir 1} "U"]]
+        [:div.row
           [:button.vote-button.btn.btn-failure
-           {:data-post-id (:id post) :data-dir -1}"D"]]]
-      [:div {:class (format "vote-count-%s" (:id post))}
-       [:p (or (posts/count-votes (:id post)) 0) ]]]
-    [:div
-      (:body post)]]
-  [:div.row-fluid
-   [:p [:bold "Tags : "]
-    ; TODO -> Get tags for post
-    "Tag123"]]
-  [:div.row-fluid
-    [:div.offset3
+          {:data-post-id (:id post) :data-dir -1}"D"]]]]
+    [:div {:class (format "span1 vote-count-%s" (:id post))}
+      [:p (or (posts/count-votes (:id post)) 0)]]
+    [:div.span9 [:p.text-left (:body post)]]]
+  [:br]
+  [:div.row
+    [:div.span3
+      [:p.text-left [:bold "Tags : "]
+        ; TODO -> Get tags for post
+      "Tag123"]]
+    [:div.span4
       (form/form-to [:put "/post/delete"]
         (form/hidden-field "id" (:id post))
         (form/submit-button {:class "btn btn-primary"} "Delete"))]
-    [:div.span3.offset6
-      [:small (format "Submitted by %s" (->> post :user_id (users/lookup-id) :handle))]]]
+    [:div
+      [:small.pull-left
+        (format "Submitted by %s" (->> post :user_id (users/lookup-id) :handle))]]]
   [:hr])
 
 (defpartial new-post-form
@@ -105,4 +108,5 @@
 
 (defpage "/post/:id/view" {post-id :id}
   (layout
-    (post-layout (posts/get-posts-for-parent post-id))))
+    [:div.container
+      (post-layout (posts/get-posts-for-parent post-id))]))

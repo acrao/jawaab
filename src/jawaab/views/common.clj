@@ -11,21 +11,25 @@
 
 (defpartial header
   []
-  [:header.row
-   [:div.navbar.navbar-static-top
+   [:div.navbar.inverse.navbar-static-top
      [:div.navbar-inner
-       (elem/link-to {:class "brand"} "/" "Jawaab")
        [:div.container
-         (elem/unordered-list {:class "nav"}
-           [(elem/link-to (url-for "/home") "Home")
-            (elem/link-to (url-for "/post/new") "New")
-            ; TODO Sessions and sign out support
-            (elem/link-to (url-for "/logout") "Sign out")])
-           (form/form-to {:class "navbar-search pull-left"} [:get "/search"]
-             (form/text-field {:class "search-query" :placeholder "Search"}
-               "search"))
-           (when-let [uid (users/get-uid)]
-             [:p "Signed in as : " (:name (users/lookup-id (Integer. uid)))])]]]])
+         [:div.row
+           [:div.span8
+             (elem/link-to {:class "brand"} "/" "Jawaab")
+             (elem/unordered-list {:class "nav"}
+               [(elem/link-to (url-for "/home") "Home")
+                (elem/link-to (url-for "/post/new") "New")
+                ; TODO Sessions and sign out support
+                (elem/link-to (url-for "/logout") "Sign out")])
+               (form/form-to {:class "navbar-search pull-left"} [:get "/search"]
+                 (form/text-field {:class "search-query" :placeholder "Search"}
+                   "search"))]
+           [:div.span4
+             (when-let [uid (users/get-uid)]
+               (elem/unordered-list {:class "nav pull-left"}
+                 [[:p.muted (format "Signed in as %s"
+                              (:name (users/lookup-id (Integer. uid))))]]))]]]]])
 
 (defpartial layout
   [& content]
@@ -35,11 +39,12 @@
       (include-css "/css/bootstrap.min.css")]
     (include-js "http://code.jquery.com/jquery-latest.js")
     (include-js "/js/posts.js")
+    (header)
+    (repeat 3 [:br])
     [:body
-     [:div.container
-      [:div.page-header (header)]
-      [:section.main.row
-        [:div.span12.row content]]]]))
+      [:div.container
+        [:div.row
+          [:div.span12 content]]]]))
 
 (defpartial user-fields
   [signup?]
