@@ -23,9 +23,9 @@
 
 (defn delete!
   "Delete a post specified by :id"
-  [{:keys [id]}]
+  [post-id]
   (-> (cql/table db-spec :posts)
-    (cql/disj! (cql/where (= :id id)))))
+    (cql/disj! (cql/where (= :id post-id)))))
 
 (defn get-post
   "Get post by id"
@@ -40,7 +40,7 @@
   [parent-id]
   (let [parent-post (get-post parent-id)
         votes-by-posts (-> (cql/table db-spec :post_votes)
-                         (cql/aggregate [[:count/user_id :as :votes]] [:post_id]))
+                         (cql/aggregate [[:sum/val :as :votes]] [:post_id]))
         replies (-> (cql/table db-spec :posts)
                   (cql/outer-join votes-by-posts :left (cql/where (= :id :post_id)))
                   (cql/select (cql/where (= :parent_id parent-id)))
@@ -57,8 +57,28 @@
     (cql/take num)
     deref))
 
-(defn vote
+(defn lookup-vote
+  [post-id uid direction]
+  (-> (cql/table db-spec :post_votes)
+    (cql/select
+      (cql/where (and (= :post_id post-id) (= :user_id uid) (= :val direction))))
+    deref))
+
+(defn voted?
+  [post-id uid direction]
+  (when-let [result (first (lookup-vote post-id uid direction))]
+    true))
+
+(defn vote!
   "Registers a vote for a post"
+  [post-id uid direction]
+  (-> (cql/table db-spec :post_votes)
+    (cql/conj! {:post_id post-id :user_id uid :val direction})))
+
+(defn count-votes
+  "Count the number of votes for a post id"
   [post-id]
-  ;TODO - after sessions
-  )
+  (-> (cql/table db-spec :post_votes)
+    (cql/select (cql/where (= :post_id post-id)))
+    (cql/aggregate [:sum/val :as :votes])
+    (cql/pick :votes) deref))

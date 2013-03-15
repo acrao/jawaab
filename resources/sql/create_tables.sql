@@ -19,7 +19,7 @@ create table posts (
   user_id integer,
   parent_id integer,
   -- constraints
-  foreign key(user_id)references user(id),
+  foreign key(user_id) references user(id),
   primary key(id)
 ) DEFAULT CHARSET=utf8;
 
@@ -36,7 +36,7 @@ create table post_tags (
   post_id integer not null,
   tag_id integer not null,
   -- constraints
-  foreign key(post_id) references posts (id),
+  foreign key(post_id) references posts(id) on delete cascade,
   foreign key(tag_id) references tags(id)
 ) DEFAULT CHARSET=utf8;
 
@@ -44,8 +44,9 @@ create table post_tags (
 create table post_votes (
   post_id integer not null,
   user_id integer not null,
+  val float not null,
   -- constraints
-  foreign key(post_id) references posts(id),
+  foreign key(post_id) references posts(id) on delete cascade,
   foreign key(user_id) references users(id)
 ) DEFAULT CHARSET=utf8;
 

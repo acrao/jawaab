@@ -24,7 +24,6 @@
 (defn lookup-email
   "Lookup an existing user by email address"
   [email]
-  (println "lookup by emai" email)
   (-> (cql/table db-spec :users)
     (cql/select (cql/where (= :email email)))
     deref))
@@ -41,14 +40,13 @@
 (defn authenticate
   [email password]
   (when-let [result (first (lookup-email email))]
-    (println "RESULT" result)
     (when (crypt/compare password (:password result))
       (:id result))))
 
 (defn save-uid!
   "Saves the user id using cookies and sessions"
   ([uid]
-    (save-uid! uid (* 30 24 60 60)))
+    (save-uid! uid (* 30 24 60 60 60)))
   ([uid max-age]
     (cookies/put! :uid
       {:value (str uid) :path "/" :max-age max-age})))
@@ -60,4 +58,4 @@
 
 (defn clear-cookies
   []
-  (save-uid! -1 0))
+  (save-uid! -1 -1))
