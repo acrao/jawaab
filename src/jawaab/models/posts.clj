@@ -27,6 +27,15 @@
   (-> (cql/table db-spec :posts)
     (cql/disj! (cql/where (= :id post-id)))))
 
+(defn search
+  "Searches for post title and body based on input text"
+  [search-text]
+  (jdbc/with-connection db-spec
+    (jdbc/with-query-results rows
+      [(format "Select * from posts where match(title,body) against ('%s')"
+        search-text)]
+      rows)))
+
 (defn get-post
   "Get post by id"
   [post-id]

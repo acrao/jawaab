@@ -13,73 +13,77 @@
 
 (defpartial format-post
   [post title?]
-  (when title?
-    [:div.row
-      [:div.span12
+  [:div.row
+    (when title?
+      [:div.row
         [:h3 (:title post)]
-        [:hr]]])
-  [:div.row
-    [:div.span1
-      [:div.container
+        [:hr]])
+    [:div.row.post-body
+      [:div.span1
         [:div.row
-          [:button.vote-button.btn.btn-success
-          {:data-post-id (:id post) :data-dir 1} "U"]]
+          [:i
+            {:class "icon-upload vote-button icon-3x"
+             :data-post-id (:id post) :data-dir 1}]]
+        [:div {:class (format "row vote-pad vote-count-%s" (:id post))}
+          [:h6 (or (posts/count-votes (:id post)) 0)]]
         [:div.row
-          [:button.vote-button.btn.btn-failure
-          {:data-post-id (:id post) :data-dir -1}"D"]]]]
-    [:div {:class (format "span1 vote-count-%s" (:id post))}
-      [:p (or (posts/count-votes (:id post)) 0)]]
-    [:div.span9 [:p.text-left (:body post)]]]
-  [:br]
-  [:div.row
-    [:div.span3
-      [:p.text-left [:bold "Tags : "]
-        ; TODO -> Get tags for post
-      "Tag123"]]
-    [:div.span4
-      (form/form-to [:put "/post/delete"]
-        (form/hidden-field "id" (:id post))
-        (form/submit-button {:class "btn btn-primary"} "Delete"))]
-    [:div
-      [:small.pull-left
-        (format "Submitted by %s" (->> post :user_id (users/lookup-id) :handle))]]]
-  [:hr])
+         [:i
+           {:class "icon-download vote-button icon-3x"
+            :data-post-id (:id post) :data-dir -1}]]]
+      [:div.span9 [:p.text-left.post-text (:body post)]]
+      [:div.span2
+        (form/form-to [:put "/post/delete"]
+          (form/hidden-field "id" (:id post))
+          [:button {:type "submit"} [:i.icon-remove-circle.icon-3x]])]]
+    [:div.row
+      [:div.span9
+        [:p.text-left [:bold "Tags : "]
+          ; TODO -> Get tags for post
+        "Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123"]]
+      [:div.span3
+        [:div.row
+          [:p.pull-left
+            (format "Submitted by %s" (->> post :user_id (users/lookup-id) :handle))]]
+        [:div.row
+          [:p (format "Submitted on %s" (:stime post))]]]]
+    [:hr]])
 
 (defpartial new-post-form
-  [parent-id hidden?]
-  (let [base-props {:class "form-horizontal new-post-form"}
-        hidden-props {:style "display: none;"}]
-    (form/form-to (if hidden? (merge base-props hidden-props) base-props)
-      [:post "/post/create"]
-      (when (not hidden?)
-        [:div.control-group
-          (form/label {:class "control-label"} "title" "Title")
-          [:div.controls
-            (form/text-area {:rows 4} "title")]])
+  [parent-id no-title?]
+  (form/form-to {:class "new-post-form"}
+    [:post "/post/create"]
+    (when (not no-title?)
       [:div.control-group
-        (form/label {:class "control-label"} "body" (if hidden? "Answer" "Question"))
+        (form/label {:class "control-label"} "title" "Title")
         [:div.controls
-          (form/text-area {:rows 4} "body")]]
-      [:div.control-group
-        (form/label {:class "control-label"} "tags" "Tags")
-        [:div.controls
-          (form/text-field "tags")]]
-      (form/hidden-field "user_id" (users/get-uid))
-      (form/hidden-field "type" (if hidden? "a" "q"))
-      (form/hidden-field "parent_id" parent-id)
-      [:div.control-group
-        [:div.controls
-          (form/submit-button {:class "btn btn-primary"} "Post")]])))
+          (form/text-area "title")]])
+    [:div.control-group
+      (form/label {:class "control-label"} "body" (if no-title? "Answer" "Question"))
+      [:div.controls
+        (form/text-area {:class "reply-text"} "body")]]
+    [:div.control-group
+      (form/label {:class "control-label"} "tags" "Tags")
+      [:div.controls
+        (form/text-field "tags")]]
+    (form/hidden-field "user_id" (users/get-uid))
+    (form/hidden-field "type" (if no-title? "a" "q"))
+    (form/hidden-field "parent_id" parent-id)
+    [:div.control-group
+      [:div.controls
+        (form/submit-button {:class "btn btn-primary"} "Post")]])
+  [:div#preview])
 
 (defpartial post-layout
   [[parent-post replies]]
-  [:div.container-fluid
-    (format-post parent-post true)
-    (map #(format-post % false) replies)
-    [:div.row-fluid
-      [:button.reply-post.btn.btn-primary "Reply"]]
-    [:div.row-fluid
-      (new-post-form (:id parent-post) true)]])
+  (format-post parent-post true)
+  (let [c (count replies)]
+    [:h4 (format "%s Answer%s" c (if (> c 1) "s" ""))])
+  [:hr]
+  (map #(format-post % false) replies)
+;  [:div.row
+;    [:button.reply-post.btn.btn-primary "Reply"]]
+  [:div.row
+    (new-post-form (:id parent-post) true)])
 
 (defpage [post "/post/vote"] {:keys [id direction]}
   (let [uid (users/get-uid)
@@ -108,5 +112,4 @@
 
 (defpage "/post/:id/view" {post-id :id}
   (layout
-    [:div.container
-      (post-layout (posts/get-posts-for-parent post-id))]))
+    (post-layout (posts/get-posts-for-parent post-id))))

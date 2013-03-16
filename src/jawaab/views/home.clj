@@ -9,10 +9,14 @@
 
 (defpartial home-posts
   [{:keys [id title stime]}]
-  [:tr
-   [:td stime]
-   [:td (elem/link-to (url-for "/post/:id/view" {:id id}) title)]
-   [:td (or (posts/num-answers id) 0)]])
+  [:div.row
+    [:div.row
+      [:div.span7 [:strong (elem/link-to (url-for "/post/:id/view" {:id id}) title)]]
+      [:div.span2 [:p stime]]
+      [:div.span1 [:p (posts/num-answers id)]]]
+    [:div.row
+      "Tags : Tag1 Tag1 Tag1 Tag1 Tag1 Tag1 Tag1 Tag1"]
+    [:hr]])
 
 (defpage "/" []
   (layout (login nil)))
@@ -20,11 +24,5 @@
 (defpage "/home" []
   (layout
     [:div.row
-      [:div.posts-list.span12
-        [:table.table-striped.span12
-          [:thead.align-right
-            [:th "Date"]
-            [:th "Title"]
-            [:th "Answers"]]
-          [:tbody
-            (map home-posts (posts/get-latest-posts 20))]]]]))
+      (elem/unordered-list {:class "home-list"}
+        (map home-posts (posts/get-latest-posts 20)))]))

@@ -20,7 +20,8 @@ create table posts (
   parent_id integer,
   -- constraints
   foreign key(user_id) references user(id),
-  primary key(id)
+  primary key(id),
+  fulltext(title,body)
 ) DEFAULT CHARSET=utf8;
 
 -- create tags table

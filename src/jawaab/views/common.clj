@@ -36,15 +36,20 @@
   (html5
     [:head
       [:title "Jawaab"]
-      (include-css "/css/bootstrap.min.css")]
+      (include-css "/css/bootstrap.min.css")
+      (include-css "/css/styles.css")
+      (include-css "/css/font-awesome.min.css")]
     (include-js "http://code.jquery.com/jquery-latest.js")
+    (include-js "https://raw.github.com/coreyti/showdown/master/compressed/showdown.js")
     (include-js "/js/posts.js")
     (header)
     (repeat 3 [:br])
     [:body
       [:div.container
         [:div.row
-          [:div.span12 content]]]]))
+          [:div.span12 content]]]]
+    [:div.footer
+      [:p "YO YO YO"]]))
 
 (defpartial user-fields
   [signup?]
