@@ -32,9 +32,12 @@
             :data-post-id (:id post) :data-dir -1}]]]
       [:div.span9 [:p.text-left.post-text (:body post)]]
       [:div.span2
-        (form/form-to [:put "/post/delete"]
-          (form/hidden-field "id" (:id post))
-          [:button {:type "submit"} [:i.icon-remove-circle.icon-3x]])]]
+        [:i {:class "icon-remove-circle icon-2x delete-post"
+             :data-post-id (:id post)
+             :style (format "display:%s;"
+                      (if (= (:user_id post) (Integer. (users/get-uid)))
+                        "true"
+                        "none"))}]]]
     [:div.row
       [:div.span9
         [:p.text-left [:bold "Tags : "]
@@ -77,11 +80,9 @@
   [[parent-post replies]]
   (format-post parent-post true)
   (let [c (count replies)]
-    [:h4 (format "%s Answer%s" c (if (> c 1) "s" ""))])
+    [:h4 (format "%s Answer%s" c (if (not (= c 1)) "s" ""))])
   [:hr]
   (map #(format-post % false) replies)
-;  [:div.row
-;    [:button.reply-post.btn.btn-primary "Reply"]]
   [:div.row
     (new-post-form (:id parent-post) true)])
 
@@ -100,15 +101,21 @@
   (layout (new-post-form nil false)))
 
 (defpage [:post "/post/create"] post
-  (let [post_id (posts/create (dissoc post :tags))
-        post (posts/get-post post_id)]
+  (let [post-id (posts/create (dissoc post :tags))
+        post (posts/get-post post-id)]
     (response/redirect
-      (url-for "/post/:id/view" {:id (or (:parent_id post) post_id)}))))
+      (url-for "/post/:id/view" {:id (or (:parent_id post) post-id)}))))
 
 (defpage [:put "/post/delete"] {post-id :id}
   (let [post (posts/get-post post-id)]
     (posts/delete! post-id)
-    (response/redirect (url-for "/post/:id/view" {:id (:parent_id post)}))))
+    (response/json
+      {:next-url
+         (cond
+           (= (:type post) "q")
+             (url-for "/home")
+           :else
+             (url-for "/post/:id/view" {:id (or (:parent_id post) post-id)}))})))
 
 (defpage "/post/:id/view" {post-id :id}
   (layout

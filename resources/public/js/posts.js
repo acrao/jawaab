@@ -30,4 +30,16 @@ $(function() {
         var content = converter.makeHtml($(this).val());
         $("#preview").html(content);
     })
+
+    $(".delete-post").on('click', function() {
+        var postId = $(this).data('post-id');
+        $.ajax({
+            url : "/post/delete",
+            type : "PUT",
+            data : { id : postId },
+            dataType : 'json'
+        }).done(function(data){
+            window.location.href = data["next-url"]
+        });
+    });
 });
