@@ -28,3 +28,16 @@
 .home-list {
     list-style-type: none;
 }
+
+.tag-body {
+    padding: 4px;
+    margin-left: 5px;
+}
+
+#header {
+    margin-bottom: 60px;
+}
+
+#footer {
+    height: 20px;
+}

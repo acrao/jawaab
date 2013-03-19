@@ -7,11 +7,12 @@
     [hiccup.element :as elem]
     [hiccup.form :as form]
     [jawaab.models.posts :as posts]
-    [jawaab.models.users :as users]))
+    [jawaab.models.users :as users]
+    [jawaab.models.tags :as tags]))
 
 (defpartial header
   []
-   [:div.navbar.inverse.navbar-static-top
+   [:div#header.navbar.inverse.navbar-static-top
      [:div.navbar-inner
        [:div.container
          [:div.row
@@ -42,14 +43,15 @@
     (include-js "http://code.jquery.com/jquery-latest.js")
     (include-js "https://raw.github.com/coreyti/showdown/master/compressed/showdown.js")
     (include-js "/js/posts.js")
-    (header)
-    (repeat 3 [:br])
     [:body
-      [:div.container
-        [:div.row
-          [:div.span12 content]]]]
-    [:div.footer
-      [:p "YO YO YO"]]))
+      [:div.wrap
+       (header)
+        [:div.container
+          [:div.row
+            [:div.span12 content]]]]
+      [:div#footer
+        [:div.container
+          [:p.muted.credit.text-center "Jawaab"]]]]))
 
 (defpartial user-fields
   [signup?]
@@ -95,3 +97,37 @@
       [:div.control-group
         [:div.controls
           (form/submit-button {:class "btn btn-primary"} "Sign up")]])])
+
+(defpartial format-tags
+  [tags]
+  (doall (map
+           #(elem/link-to {:class "badge badge-info tag-body"}
+              (url-for "/tags/:id/posts" {:id (:tag_id %)}) (:name %))
+           tags)))
+
+(defpartial format-post-list-item
+  [{:keys [id title stime body parent_id type]}]
+  (when id
+    [:div.row
+      [:div.row
+        [:div.span7
+          [:strong
+            (elem/link-to (url-for "/post/:id/view" {:id (if (= type "q") id parent_id)}  )
+              (or title
+                (str (subs body 0 (if (> (count body) 20) 20 (count body))) "...")))]]
+        [:div.span2 [:p stime]]
+        [:div.span1 [:p (posts/num-answers id)]]]
+      [:div.row
+        [:div.span10
+          (format-tags (tags/tags-by-post id))]]
+      [:hr]]))
+
+(defpartial posts-list
+  [header posts]
+  (println posts)
+  (when header
+    [:div.row.post-list-header
+     [:h5 header]])
+  [:div.row
+    (elem/unordered-list {:class "home-list"}
+      (map format-post-list-item posts))])

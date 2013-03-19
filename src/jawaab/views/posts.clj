@@ -2,14 +2,15 @@
   (:use
     [noir.core :only [defpartial defpage url-for]]
     [hiccup.page :only [include-js]]
-    jawaab.views.common
-    )
+    jawaab.views.common)
   (:require
+    [clojure.string :as s]
     [hiccup.form :as form]
     [hiccup.element :as elem]
     [noir.response :as response]
     [jawaab.models.posts :as posts]
-    [jawaab.models.users :as users]))
+    [jawaab.models.users :as users]
+    [jawaab.models.tags :as tags]))
 
 (defpartial format-post
   [post title?]
@@ -40,9 +41,7 @@
                         "none"))}]]]
     [:div.row
       [:div.span9
-        [:p.text-left [:bold "Tags : "]
-          ; TODO -> Get tags for post
-        "Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123 Tag123"]]
+        (format-tags (tags/tags-by-post (:id post)))]
       [:div.span3
         [:div.row
           [:p.pull-left
@@ -76,6 +75,14 @@
         (form/submit-button {:class "btn btn-primary"} "Post")]])
   [:div#preview])
 
+(defn- handle-post-create
+  [post]
+  (let [post-id (posts/create (dissoc post :tags))
+        tags (-> post :tags (s/split #",") (#(map s/trim %)))
+        post (posts/get-post post-id)
+        tag-ids (doall (map (fn [tag] (tags/tag-post post-id tag)) tags))]
+    post))
+
 (defpartial post-layout
   [[parent-post replies]]
   (format-post parent-post true)
@@ -100,11 +107,10 @@
 (defpage "/post/new" []
   (layout (new-post-form nil false)))
 
-(defpage [:post "/post/create"] post
-  (let [post-id (posts/create (dissoc post :tags))
-        post (posts/get-post post-id)]
+(defpage [:post "/post/create"] post-req
+  (let [post (handle-post-create post-req)]
     (response/redirect
-      (url-for "/post/:id/view" {:id (or (:parent_id post) post-id)}))))
+      (url-for "/post/:id/view" {:id (or (:parent_id post) (:id post))}))))
 
 (defpage [:put "/post/delete"] {post-id :id}
   (let [post (posts/get-post post-id)]
