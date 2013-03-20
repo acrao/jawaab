@@ -124,7 +124,6 @@
 
 (defpartial posts-list
   [header posts]
-  (println posts)
   (when header
     [:div.row.post-list-header
      [:h5 header]])

@@ -32,13 +32,14 @@
            {:class "icon-download vote-button icon-3x"
             :data-post-id (:id post) :data-dir -1}]]]
       [:div.span9 [:p.text-left.post-text (:body post)]]
-      [:div.span2
-        [:i {:class "icon-remove-circle icon-2x delete-post"
-             :data-post-id (:id post)
-             :style (format "display:%s;"
-                      (if (= (:user_id post) (Integer. (users/get-uid)))
-                        "true"
-                        "none"))}]]]
+      (when-let [uid (users/get-uid)]
+        [:div.span2
+          [:i {:class "icon-remove-circle icon-2x delete-post"
+               :data-post-id (:id post)
+               :style (format "display:%s;"
+                        (if (= (:user_id post) (Integer. (users/get-uid)))
+                          "true"
+                          "none"))}]])]
     [:div.row
       [:div.span9
         (format-tags (tags/tags-by-post (:id post)))]

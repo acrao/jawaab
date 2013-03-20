@@ -7,7 +7,6 @@
 
 (defpage "/tags/:id/posts" {tag-id :id}
   (let [tag (tags/get-tag (Integer. tag-id))]
-    (println "TAG ID" tag-id)
     (layout
       (posts-list (format "Posts tagged with %s" (:name tag))
         (tags/posts-by-tag (:id tag))))))
