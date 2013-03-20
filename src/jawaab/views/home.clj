@@ -14,3 +14,8 @@
 (defpage "/home" []
   (layout
     (posts-list nil (posts/get-latest-posts 20))))
+
+(defpage "/search" {:keys [query-string]}
+  (layout
+    (posts-list (format "Search results for \"%s\"" query-string)
+      (posts/search query-string))))

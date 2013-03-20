@@ -25,7 +25,7 @@
                 (elem/link-to (url-for "/logout") "Sign out")])
                (form/form-to {:class "navbar-search pull-left"} [:get "/search"]
                  (form/text-field {:class "search-query" :placeholder "Search"}
-                   "search"))]
+                   "query-string"))]
            [:div.span4
              (when-let [uid (users/get-uid)]
                (elem/unordered-list {:class "nav pull-left"}

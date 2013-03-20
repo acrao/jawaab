@@ -32,9 +32,9 @@
   [search-text]
   (jdbc/with-connection db-spec
     (jdbc/with-query-results rows
-      [(format "Select * from posts where match(title,body) against ('%s')"
+      [(format "select * from posts where match(title,body) against ('%s')"
         search-text)]
-      rows)))
+      (doall rows))))
 
 (defn get-post
   "Get post by id"
