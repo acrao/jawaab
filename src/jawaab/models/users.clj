@@ -13,7 +13,7 @@
   (not (empty? (-> (cql/table db-spec :users)
                  (cql/select (cql/where (= :email email))) deref))))
 
-(defn create!
+(defn create
   "Creates a new user record"
   [user]
   (->> (assoc user :password (crypt/encrypt (:password user)))

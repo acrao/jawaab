@@ -22,5 +22,6 @@
   (layout (signup)))
 
 (defpage [:post "/user/new"] user
-  (users/create! user)
-  (redirect (url-for "/home")))
+  (let [uid (users/create user)]
+    (users/save-uid! uid)
+    (redirect (url-for "/home"))))
